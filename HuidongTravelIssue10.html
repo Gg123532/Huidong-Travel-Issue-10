@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的59页杂志电子书</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        /* 整体容器 - 适配长目录+图片展示 */
+        .ebook-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 目录侧边栏 - 优化长目录滚动体验 */
+        .ebook-sidebar {
+            width: 280px;
+            background-color: #fff;
+            padding: 20px;
+            border-right: 1px solid #eee;
+            overflow-y: auto; /* 目录超长时滚动 */
+            max-height: 100vh; /* 限制目录高度 */
+        }
+
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 目录分组标题（区分固定页和内容页） */
+        .chapter-group-title {
+            font-size: 14px;
+            color: #999;
+            margin: 15px 0 8px 8px;
+            font-weight: normal;
+        }
+
+        .chapter-list {
+            list-style: none;
+        }
+
+        .chapter-item {
+            margin-bottom: 6px; /* 缩小目录项间距，适配59页 */
+        }
+
+        .chapter-link {
+            text-decoration: none;
+            color: #666;
+            padding: 6px 10px;
+            display: block;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .chapter-link:hover, .chapter-link.active {
+            background-color: #e8f4f8;
+            color: #2f80ed;
+        }
+
+        /* 图片阅读区 - 核心优化 */
+        .ebook-content {
+            flex: 1;
+            padding: 20px 40px;
+            background-color: #fff;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 图片居中 */
+            justify-content: center;
+        }
+
+        /* 杂志图片容器 - 适配不同设备 */
+        .magazine-img {
+            max-width: 100%; /* 图片不超出容器 */
+            max-height: 80vh; /* 图片高度不超过屏幕80% */
+            object-fit: contain; /* 保持图片比例，不拉伸 */
+            border: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        /* 图片加载提示 */
+        .img-loading {
+            font-size: 16px;
+            color: #999;
+            padding: 40px;
+        }
+
+        /* 页码提示（显示当前页/总页数） */
+        .page-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        /* 控制区（翻页按钮）- 加大按钮，提升操作体验 */
+        .ebook-controls {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #2f80ed;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background-color: #1e6fdb;
+        }
+
+        .control-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 响应式适配（手机/平板） */
+        @media (max-width: 768px) {
+            .ebook-container {
+                flex-direction: column;
+            }
+
+            .ebook-sidebar {
+                width: 100%;
+                height: 200px;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+
+            .ebook-content {
+                padding: 15px 15px;
+            }
+
+            .magazine-img {
+                max-height: 70vh;
+            }
+
+            .control-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+
+        /* 大屏适配（电脑） */
+        @media (min-width: 1200px) {
+            .magazine-img {
+                max-width: 90%; /* 大屏下图片宽度适中 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ebook-container">
+        <!-- 目录侧边栏 -->
+        <div class="ebook-sidebar">
+            <h3 class="sidebar-title">杂志目录</h3>
+            <div id="chapterListContainer">
+                <!-- 目录由JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 图片阅读区 -->
+        <div class="ebook-content">
+            <!-- 页码提示 -->
+            <div class="page-info" id="pageInfo">第1页 / 共59页</div>
+            <!-- 图片展示位 -->
+            <div class="img-loading" id="imgLoading">加载中...</div>
+            <img src="" alt="" class="magazine-img" id="magazineImg" style="display: none;">
+            
+            <!-- 翻页控制按钮 -->
+            <div class="ebook-controls">
+                <button class="control-btn" id="prevBtn" disabled>上一页</button>
+                <button class="control-btn" id="nextBtn">下一页</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 杂志核心配置（只需替换这里的图片路径！）
+        // 基础规则：图片文件和HTML放在同一文件夹，命名用英文/数字，比如 cover.jpg、author.jpg
+        const magazineConfig = {
+            // 固定页配置（1-4、58-59）
+            fixedPages: {
+                1: { title: "封面", imgSrc: "cover.jpg" },
+                2: { title: "作者信息", imgSrc: "author.jpg" },
+                3: { title: "刊首", imgSrc: "preface.jpg" },
+                4: { title: "目录", imgSrc: "catalog.jpg" },
+                58: { title: "刊尾", imgSrc: "postscript.jpg" },
+                59: { title: "封底", imgSrc: "backcover.jpg" }
+            },
+            // 内容页配置（5-57）：统一命名规则为 content+页码.jpg，比如 content5.jpg
+            contentPageStart: 5,
+            contentPageEnd: 57,
+            contentPageTitlePrefix: "杂志内容 - 第",
+            contentPageImgPrefix: "content" // 图片名前缀，比如 content5.jpg
+        };
+
+        // 2. 构建完整的59页数据（自动整合固定页+内容页）
+        let magazineData = {};
+        
+        // 第一步：添加固定页
+        for (const [pageNum, pageInfo] of Object.entries(magazineConfig.fixedPages)) {
+            magazineData[pageNum] = pageInfo;
+        }
+        
+        // 第二步：自动生成5-57页的内容页数据
+        for (let pageNum = magazineConfig.contentPageStart; pageNum <= magazineConfig.contentPageEnd; pageNum++) {
+            magazineData[pageNum] = {
+                title: `${magazineConfig.contentPageTitlePrefix}${pageNum}页`,
+                imgSrc: `${magazineConfig.contentPageImgPrefix}${pageNum}.jpg`
+            };
+        }
+
+        // 3. 全局变量
+        const totalChapters = 59; // 总页数固定为59
+        let currentChapter = 1; // 默认显示第1页（封面）
+
+        // 4. 获取DOM元素
+        const chapterListContainer = document.getElementById('chapterListContainer');
+        const pageInfo = document.getElementById('pageInfo');
+        const imgLoading = document.getElementById('imgLoading');
+        const magazineImg = document.getElementById('magazineImg');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // 5. 动态生成目录（分组显示，更清晰）
+        function generateChapterList() {
+            // 目录HTML模板
+            let chapterHtml = `
+                <ul class="chapter-list">
+                    <!-- 固定页分组 -->
+                    <li class="chapter-group-title">基础页</li>
+                    ${Object.entries(magazineConfig.fixedPages).map(([pageNum, pageInfo]) => `
+                        <li class="chapter-item">
+                            <a href="javascript:;" class="chapter-link ${pageNum == 1 ? 'active' : ''}" data-chapter="${pageNum}">
+                                ${pageInfo.title}
+                            </a>
+                        </li>
+                    `).join('')}
+                    
+                    <!-- 内容页分组 -->
+                    <li class="chapter-group-title">杂志内容（第5-57页）</li>
+                    ${Array.from({length: magazineConfig.contentPageEnd - magazineConfig.contentPageStart + 1}, (_, index) => {
+                        const pageNum = magazineConfig.contentPageStart + index;
+                        return `
+                            <li class="chapter-item">
+                                <a href="javascript:;" class="chapter-link" data-chapter="${pageNum}">
+                                    ${magazineConfig.contentPageTitlePrefix}${pageNum}页
+                                </a>
+                            </li>
+                        `;
+                    }).join('')}
+                </ul>
+            `;
+            
+            // 插入目录到页面
+            chapterListContainer.innerHTML = chapterHtml;
+        }
+
+        // 6. 加载指定页码的杂志页
+        function loadMagazinePage(pageNum) {
+            // 更新当前页码
+            currentChapter = pageNum;
+            
+            // 更新页码提示
+            pageInfo.textContent = `第${pageNum}页 / 共${totalChapters}页`;
+            
+            // 显示加载提示，隐藏图片
+            imgLoading.style.display = "block";
+            magazineImg.style.display = "none";
+
+            // 获取当前页的图片信息
+            const pageData = magazineData[pageNum];
+            if (!pageData) {
+                imgLoading.textContent = "页码错误，无对应内容";
+                return;
+            }
+
+            // 预加载图片，避免白屏
+            const img = new Image();
+            // 图片加载成功
+            img.onload = function() {
+                magazineImg.src = pageData.imgSrc;
+                magazineImg.alt = pageData.title;
+                imgLoading.style.display = "none";
+                magazineImg.style.display = "block";
+            };
+            // 图片加载失败（提示具体错误）
+            img.onerror = function() {
+                imgLoading.textContent = `加载失败：${pageData.title}（图片文件${pageData.imgSrc}不存在）`;
+            };
+            // 开始加载图片
+            img.src = pageData.imgSrc;
+
+            // 更新目录选中状态
+            document.querySelectorAll('.chapter-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.chapter == pageNum) {
+                    link.classList.add('active');
+                    // 目录滚动到当前选中项（方便长目录定位）
+                    link.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+            
+            // 更新翻页按钮状态
+            prevBtn.disabled = currentChapter === 1;
+            nextBtn.disabled = currentChapter === totalChapters;
+        }
+
+        // 7. 绑定事件
+        function bindEvents() {
+            // 目录点击事件
+            chapterListContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('chapter-link')) {
+                    const pageNum = parseInt(e.target.dataset.chapter);
+                    loadMagazinePage(pageNum);
+                }
+            });
+
+            // 上一页按钮
+            prevBtn.addEventListener('click', () => {
+                if (currentChapter > 1) {
+                    loadMagazinePage(currentChapter - 1);
+                }
+            });
+
+            // 下一页按钮
+            nextBtn.addEventListener('click', () => {
+                if (currentChapter < totalChapters) {
+                    loadMagazinePage(currentChapter + 1);
+                }
+            });
+
+            // 可选：按键盘左右箭头翻页（提升体验）
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    prevBtn.click();
+                } else if (e.key === 'ArrowRight') {
+                    nextBtn.click();
+                }
+            });
+        }
+
+        // 8. 初始化（页面加载完成后执行）
+        window.onload = function() {
+            generateChapterList(); // 生成目录
+            bindEvents(); // 绑定事件
+            loadMagazinePage(1); // 加载封面页
+        };
+    </script>
+</body>
+</html>
